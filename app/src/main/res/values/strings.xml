@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SmartApartments</string>
+    <string name="get_failed">加载失败</string>
+</resources>

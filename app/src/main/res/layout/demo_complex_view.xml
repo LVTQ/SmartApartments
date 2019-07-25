@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ListView中的ItemView里不要用Button等默认hasFocus的控件，以免onItemClick事件无响应 -->
+<!-- 如果一定要用，则必须在根布局加上 android:descendantFocusability="blocksDescendants" -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:padding="6dp" >
+
+    <RelativeLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+
+        <ImageView
+            android:id="@+id/ivDemoComplexViewHead"
+            android:layout_height="45dp"
+            android:layout_width="45dp"
+            android:scaleType="centerCrop"
+            android:background="@color/colorAccent"
+            android:src="@mipmap/icon_main_mine" />
+
+        <TextView
+            android:id="@+id/tvDemoComplexViewName"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_alignTop="@+id/ivDemoComplexViewHead"
+            android:layout_marginRight="6dp"
+            android:layout_toRightOf="@+id/ivDemoComplexViewHead"
+            android:text="name" />
+
+        <TextView
+            android:id="@+id/tvDemoComplexViewSex"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@+id/tvDemoComplexViewName"
+            android:layout_alignBottom="@+id/tvDemoComplexViewName"
+            android:layout_toRightOf="@+id/tvDemoComplexViewName"
+            android:text="sex" />
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/ivDemoComplexViewHead"
+            android:layout_toRightOf="@+id/ivDemoComplexViewHead"
+            android:background="@color/colorPrimaryDark"
+            android:gravity="left"
+            android:padding="30dp" >
+
+            <TextView
+                android:id="@+id/tvDemoComplexViewAge"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="age" />
+
+            <TextView
+                android:id="@+id/tvDemoComplexViewNumber"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="number" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</LinearLayout>
