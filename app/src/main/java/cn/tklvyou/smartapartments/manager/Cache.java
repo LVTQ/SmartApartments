@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-
 import com.blankj.utilcode.util.StringUtils;
 
 import cn.tklvyou.smartapartments.utils.JSON;
