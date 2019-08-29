@@ -1,4 +1,4 @@
-package cn.tklvyou.smartapartments.interfaces;
+package cn.tklvyou.smartapartments.base.interfaces;
 
 /**Adapter使用回调
  * @author Lemon

@@ -50,7 +50,6 @@ public class AccountLoginPresenter extends BasePresenter<AccountContract.LoginVi
                 } else {
                     mView.loginError("密码错误！");
                 }
-                mView.hideLoading();
             }
         }, 2000);
 

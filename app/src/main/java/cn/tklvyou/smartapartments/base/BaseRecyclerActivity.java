@@ -1,9 +1,6 @@
 package cn.tklvyou.smartapartments.base;
 
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemLongClickListener;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -11,16 +8,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import cn.tklvyou.smartapartments.R;
+import cn.tklvyou.smartapartments.base.interfaces.AdapterCallBack;
+import cn.tklvyou.smartapartments.base.interfaces.CacheCallBack;
+import cn.tklvyou.smartapartments.base.interfaces.OnStopLoadListener;
 import cn.tklvyou.smartapartments.common.Contacts;
-import cn.tklvyou.smartapartments.interfaces.AdapterCallBack;
-import cn.tklvyou.smartapartments.interfaces.CacheCallBack;
-import cn.tklvyou.smartapartments.interfaces.OnStopLoadListener;
 import cn.tklvyou.smartapartments.manager.CacheManager;
 
 
@@ -51,11 +50,10 @@ import cn.tklvyou.smartapartments.manager.CacheManager;
  *       4.setList把列表数据绑定到adapter <br />
  *   </pre>
  */
-public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,T, VH extends RecyclerView.ViewHolder, A extends RecyclerView.Adapter<VH>>
-        extends BaseActivity<P> implements OnItemClickListener, OnItemLongClickListener {
+public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter, T, VH extends BaseViewHolder, A extends BaseQuickAdapter<T, VH>>
+        extends BaseActivity<P> implements BaseQuickAdapter.OnItemClickListener, BaseQuickAdapter.OnItemLongClickListener , BaseQuickAdapter.OnItemChildClickListener {
 
     private static final String TAG = "BaseRecyclerActivity";
-
 
     protected RecyclerView rvBaseRecycler;
     /**
@@ -66,10 +64,11 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
     private boolean isToSaveCache;
     private boolean isToLoadCache;
 
+
     /**
-     * 列表首页页码。有些服务器设置为1，即列表页码从1开始
+     * 列表首页页码。有些服务器设置为0，即列表页码从0开始
      */
-    public static final int PAGE_NUM_0 = 0;
+    public static final int PAGE_NUM_1 = 1;
 
     /**
      * 数据列表
@@ -89,11 +88,11 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
     private int page;
     private int loadCacheStart;
 
-
-    public void initRecyclerView(RecyclerView recyclerView){
+    public void initRecyclerView(RecyclerView recyclerView) {
         rvBaseRecycler = recyclerView;
         rvBaseRecycler.setLayoutManager(new LinearLayoutManager(this));
     }
+
 
     /**
      * 设置adapter
@@ -101,12 +100,14 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
      * @param adapter
      */
     public void setAdapter(A adapter) {
-        if (adapter instanceof BaseAdapter) {
-            ((BaseAdapter) adapter).setOnItemClickListener(this);
-            ((BaseAdapter) adapter).setOnItemLongClickListener(this);
-        }
+        adapter.setOnItemClickListener(this);
+        adapter.setOnItemChildClickListener(this);
+        adapter.setOnItemLongClickListener(this);
         this.adapter = adapter;
-        rvBaseRecycler.setAdapter(adapter);
+        rvBaseRecycler.setAdapter(this.adapter);
+        this.adapter.setEmptyView(R.layout.common_empty_view,rvBaseRecycler);
+        this.adapter.setHeaderAndEmpty(true);
+
     }
 
     /**
@@ -125,10 +126,10 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
     public void setList(AdapterCallBack<A> callBack) {
         if (adapter == null) {
             setAdapter(callBack.createAdapter());
+        }else {
+            callBack.refreshAdapter();
         }
-        callBack.refreshAdapter();
     }
-
 
 
     /**
@@ -158,12 +159,12 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
         isLoading = true;
         isSucceed = false;
 
-        if (page_ <= PAGE_NUM_0) {
-            page_ = PAGE_NUM_0;
+        if (page_ <= PAGE_NUM_1) {
+            page_ = PAGE_NUM_1;
             isHaveMore = true;
             loadCacheStart = 0;//使用则可像网络正常情况下的重载，不使用则在网络异常情况下不重载（导致重载后加载数据下移）
         } else {
-            if (!isHaveMore) {
+            if (isHaveMore == false) {
                 stopLoadData(page_);
                 return;
             }
@@ -177,13 +178,13 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
 
             @Override
             public void run() {
-                if (!isCache) {//从网络获取数据
+                if (isCache == false) {//从网络获取数据
                     getListAsync(page);
                 } else {//从缓存获取数据
                     onLoadSucceed(page, CacheManager.getInstance().getList(cacheCallBack.getCacheClass()
                             , cacheCallBack.getCacheGroup(), loadCacheStart, cacheCallBack.getCacheCount()),
                             true);
-                    if (page <= PAGE_NUM_0) {
+                    if (page <= PAGE_NUM_1) {
                         isLoading = false;//stopLoadeData在其它线程isLoading = false;后这个线程里还是true
                         loadData(page, false);
                     }
@@ -222,7 +223,7 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
             return;
         }
         onStopLoadListener.onStopRefresh();
-        if (page > PAGE_NUM_0) {
+        if (page > PAGE_NUM_1) {
             onStopLoadListener.onStopLoadMore(isHaveMore);
         }
     }
@@ -246,8 +247,8 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
         LogUtils.i("\n\n<<<<<<<<<<<<<<<<<\n handleList  newList.size = " + newList.size() + "; isCache = " + isCache
                 + "; page = " + page + "; isSucceed = " + isSucceed);
 
-        if (page <= PAGE_NUM_0) {
-            LogUtils.i("handleList  page <= PAGE_NUM_0 >>>>  ");
+        if (page <= PAGE_NUM_1) {
+            LogUtils.i("handleList  page <= PAGE_NUM_1 >>>>  ");
             saveCacheStart = 0;
             list = new ArrayList<T>(newList);
             if (isCache == false && list.isEmpty() == false) {
@@ -255,7 +256,7 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
                 isToLoadCache = false;
             }
         } else {
-            LogUtils.i("handleList  page > PAGE_NUM_0 >>>>  ");
+            LogUtils.i("handleList  page > PAGE_NUM_1 >>>>  ");
             if (list == null) {
                 list = new ArrayList<T>();
             }
@@ -362,8 +363,6 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
     //缓存>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
-
-
     private OnStopLoadListener onStopLoadListener;
 
     /**
@@ -381,6 +380,7 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
      * 初始化缓存
      *
      * @param cacheCallBack
+     * @warn 在initData前使用才有效
      */
     protected void initCache(CacheCallBack<T> cacheCallBack) {
         this.cacheCallBack = cacheCallBack;
@@ -395,15 +395,15 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
      * @must 在子类onCreate中调用，建议放在最后
      */
     public void onRefresh() {
-        loadData(PAGE_NUM_0);
+        loadData(PAGE_NUM_1);
     }
 
     /**
      * 加载更多
      */
     public void onLoadMore() {
-        if (isSucceed == false && page <= PAGE_NUM_0) {
-            LogUtils.w("onLoadMore  isSucceed == false && page <= PAGE_NUM_0 >> return;");
+        if (isSucceed == false && page <= PAGE_NUM_1) {
+            LogUtils.w("onLoadMore  isSucceed == false && page <= PAGE_NUM_1 >> return;");
             return;
         }
         loadData(page + (isSucceed ? 1 : 0));
@@ -413,25 +413,27 @@ public abstract class BaseRecyclerActivity<P extends BaseContract.BasePresenter,
     /**
      * 重写后可自定义对这个事件的处理
      *
-     * @param parent
      * @param view
      * @param position
-     * @param id
      */
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+    }
+
+    @Override
+    public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+
     }
 
     /**
      * 重写后可自定义对这个事件的处理，如果要在长按后不触发onItemClick，则需要 return true;
      *
-     * @param parent
      * @param view
      * @param position
-     * @param id
      */
     @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+    public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
         return false;
     }
 

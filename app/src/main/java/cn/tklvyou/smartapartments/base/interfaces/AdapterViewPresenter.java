@@ -1,4 +1,4 @@
-package cn.tklvyou.smartapartments.base;
+package cn.tklvyou.smartapartments.base.interfaces;
 
 import android.view.ViewGroup;
 

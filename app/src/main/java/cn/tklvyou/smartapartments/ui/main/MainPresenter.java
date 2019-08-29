@@ -48,7 +48,6 @@ public class MainPresenter extends BasePresenter<MainContract.View> implements M
                 }else{
                     mView.loginError("密码错误！");
                 }
-                mView.hideLoading();
 //                frameLayout4Loading.hideLoadingView();
             }
         }, 2000);

@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">SmartApartments</string>
     <string name="get_failed">加载失败</string>
+
+    <string name="loading">加载中…</string>
+    <string name="load_failed">加载失败，点击重试</string>
+    <string name="load_failed_no_network">网络失联了…\n请联网后点击重试</string>
+    <string name="empty">暂时没有内容!</string>
+    <string name="str_none" />
+    <string name="title_activity_test">TestActivity</string>
+
 </resources>

@@ -8,12 +8,12 @@ import cn.tklvyou.smartapartments.base.BaseActivity
 import cn.tklvyou.smartapartments.base.NullContract
 import cn.tklvyou.smartapartments.base.NullPresenter
 import cn.tklvyou.smartapartments.ui.adapter.MyFragmentPagerAdapter
-import com.jaeger.library.StatusBarUtil
 import com.trello.rxlifecycle3.components.support.RxFragment
 import kotlinx.android.synthetic.main.activity_account.*
 
 class AccountActivity : BaseActivity<NullPresenter>(), NullContract.View, ViewPager.OnPageChangeListener {
-    override fun initView() {
+
+    override fun initView(savedInstanceState: Bundle?) {
         val loginFragment = LoginFragment()
         val registerFragment = RegisterFragment()
         val data = ArrayList<RxFragment>()

@@ -44,6 +44,7 @@ public abstract class BaseBottomTabActivity<P extends BaseContract.BasePresenter
                     LogUtils.w("selectFragment currentPosition == position" +
                             " >> fragments[position] != null && fragments[position].isVisible()" +
                             " >> return;	");
+                    homeDoubleClick(position);
                     return;
                 }
             }
@@ -57,7 +58,7 @@ public abstract class BaseBottomTabActivity<P extends BaseContract.BasePresenter
         //全局的fragmentTransaction因为already committed 崩溃
         FragmentTransaction ft = fragmentManager.beginTransaction();
         ft.hide(fragments.get(currentPosition));
-        if (fragments.get(position).isAdded() == false) {
+        if (!fragments.get(position).isAdded()) {
             ft.add(getFragmentContainerResId(), fragments.get(position));
         }
         ft.show(fragments.get(position)).commit();
@@ -73,10 +74,22 @@ public abstract class BaseBottomTabActivity<P extends BaseContract.BasePresenter
      */
     public abstract int getFragmentContainerResId();
 
+    public void  homeDoubleClick(int position){
+
+    }
 
     /**
      * 获取所有的Fragment
      */
     protected abstract List<Fragment> getFragments();
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (fragments != null) {
+            fragments.clear();
+            fragments = null;
+        }
+    }
 }

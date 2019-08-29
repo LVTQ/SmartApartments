@@ -22,7 +22,7 @@ public interface BaseContract {
         void detachView();
     }
 
-    interface BaseView{
+    interface BaseView {
 
         /**
          * 显示进度中
@@ -30,9 +30,9 @@ public interface BaseContract {
         void showLoading();
 
         /**
-         * 隐藏进度
+         * 整个页面显示进度中
          */
-        void hideLoading();
+        void showPageLoading();
 
         /**
          * 显示请求成功

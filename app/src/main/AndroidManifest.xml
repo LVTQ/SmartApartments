@@ -21,27 +21,14 @@
         android:supportsRtl="true"
         android:theme="@style/CustomAppTheme">
         <activity android:name=".ui.main.MainActivity">
-
-        </activity>
-        <activity android:name=".ui.account.AccountActivity" >
-
-
-
-        </activity>
-
-        <activity android:name=".ui.test.DemoRecyclerActivity">
-
-        </activity>
-
-
-        <activity android:name=".ui.test.DemoHttpRecyclerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity android:name=".ui.account.AccountActivity" >
+        </activity>
 
     </application>
 

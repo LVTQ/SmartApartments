@@ -9,10 +9,15 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 
+import com.billy.android.loading.Gloading;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.trello.rxlifecycle3.LifecycleTransformer;
 import com.trello.rxlifecycle3.components.support.RxFragment;
+
+import cn.tklvyou.smartapartments.base.interfaces.LazyFragmentControl;
+
 
 /**
  * 懒加载Fragment基类
@@ -24,19 +29,24 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
     protected BaseActivity mActivity;//activity的上下文对象
     protected Bundle mBundle;
 
+    private View mContentView;
+
     private static final long DEFAULT_TIME_INTERVAL = 5 * 1000;//默认间隔时间30秒
 
-    private boolean isAlive =false;
+    private boolean isAlive = false;
     private boolean isPrepared;
     /**
      * 第一次onResume中的调用onUserVisible避免操作与onFirstUserVisible操作重复
      */
-    private boolean isFirstResume = true;
+    protected boolean isFirstResume = true;
     private boolean isFirstVisible = true;
     private boolean isFirstInvisible = true;
 
     private long mLastVisibleTime = System.currentTimeMillis();//上一次显示的时间
     private long mTimeInterval = DEFAULT_TIME_INTERVAL;
+
+    //小范围加载视图
+    private Gloading.Holder specialLoadingHolder;
 
 
     @Override
@@ -86,7 +96,8 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         isAlive = true;
-        return inflater.inflate(getFragmentLayoutID(), container, false);
+        mContentView = inflater.inflate(getFragmentLayoutID(), container, false);
+        return mContentView;
     }
 
     /**
@@ -101,6 +112,22 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
         initView();
         initPrepare();
 
+        specialLoadingHolder = Gloading.from(new SpecialAdapter()).wrap(getLoadingView()).withRetry(new Runnable() {
+            @Override
+            public void run() {
+                specialLoadingHolder.showLoadSuccess();
+                onRetry();
+            }
+        });
+    }
+
+    /**
+     * 覆写此方法可以更改Loading绑定的View
+     *
+     * @return
+     */
+    protected View getLoadingView() {
+        return mContentView;
     }
 
     @Override
@@ -110,7 +137,6 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
             isFirstResume = false;
             return;
         }
-        LogUtils.e(getUserVisibleHint());
         if (getUserVisibleHint()) {
             onUserVisible();
         }
@@ -125,10 +151,14 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
     }
 
 
+    /**
+     * 当fragment结合viewpager使用的时候 这个方法会调用
+     *
+     * @param isVisibleToUser
+     */
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        LogUtils.e(isVisibleToUser,isFirstVisible);
         if (isVisibleToUser) {
             if (isFirstVisible) {
                 isFirstVisible = false;
@@ -189,17 +219,22 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
 
     //运行线程<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    /**在UI线程中运行，建议用这个方法代替runOnUiThread
+    /**
+     * 在UI线程中运行，建议用这个方法代替runOnUiThread
+     *
      * @param action
      */
     public final void runUiThread(Runnable action) {
         if (isAlive == false) {
-            LogUtils.w( "runUiThread  isAlive() == false >> return;");
+            LogUtils.w("runUiThread  isAlive() == false >> return;");
             return;
         }
         mActivity.runUiThread(action);
     }
-    /**运行线程
+
+    /**
+     * 运行线程
+     *
      * @param name
      * @param runnable
      * @return
@@ -213,7 +248,6 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
     }
 
     //运行线程>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 
 
     /**
@@ -235,7 +269,6 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
      */
     protected abstract int getFragmentLayoutID();
 
-
     /**
      * 类似Activity的OnBackgress
      * fragment进行回退
@@ -244,37 +277,40 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
         getFragmentManager().popBackStack();
     }
 
-
-
     @Override
     public void showLoading() {
-        ((BaseActivity)mActivity).showLoading();
+        specialLoadingHolder.showLoading();
     }
 
     @Override
-    public void hideLoading() {
-        ((BaseActivity)mActivity).hideLoading();
+    public void showPageLoading() {
+        mActivity.showPageLoading();
     }
 
     @Override
     public void showSuccess(String message) {
-        ToastUtils.showShort(message);
+        specialLoadingHolder.showLoadSuccess();
+        if (!StringUtils.isEmpty(message)) {
+            ToastUtils.showShort(message);
+        }
     }
 
     @Override
     public void showFailed(String message) {
-        ToastUtils.showShort(message);
+        specialLoadingHolder.showLoadFailed();
+        if (!StringUtils.isEmpty(message)) {
+            ToastUtils.showShort(message);
+        }
     }
-
 
     @Override
     public void showNoNet() {
-        ((BaseActivity)mActivity).showNoNet();
+        specialLoadingHolder.showLoadFailed();
     }
 
     @Override
     public void showNoData() {
-        ((BaseActivity)mActivity).showNoData();
+        specialLoadingHolder.showEmpty();
     }
 
     @Override
@@ -286,9 +322,6 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter> extends
     public <T> LifecycleTransformer<T> bindToLife() {
         return this.bindToLifecycle();
     }
-
-
-
 
     @Override
     public void checkLastTime() {

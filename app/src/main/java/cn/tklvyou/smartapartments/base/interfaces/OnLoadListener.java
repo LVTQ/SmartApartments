@@ -1,4 +1,4 @@
-package cn.tklvyou.smartapartments.interfaces;
+package cn.tklvyou.smartapartments.base.interfaces;
 
 /**停止加载监听回调
  * @author Lemon

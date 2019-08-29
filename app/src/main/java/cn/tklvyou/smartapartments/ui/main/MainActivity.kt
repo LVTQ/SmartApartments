@@ -1,5 +1,6 @@
 package cn.tklvyou.smartapartments.ui.main
 
+import android.os.Bundle
 import androidx.fragment.app.Fragment
 import cn.tklvyou.smartapartments.R
 import cn.tklvyou.smartapartments.base.BaseBottomTabActivity
@@ -30,7 +31,7 @@ class MainActivity : BaseBottomTabActivity<NullPresenter>(){
     }
 
     private var mFragments:MutableList<RxFragment>? =  null
-    override fun initView() {
+    override fun initView(savedInstanceState: Bundle?) {
 
         mFragments = ArrayList()
         mFragments!!.add(LoginFragment())
