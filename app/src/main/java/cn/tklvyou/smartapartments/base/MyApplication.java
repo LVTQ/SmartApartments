@@ -18,8 +18,6 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import cn.tklvyou.smartapartments.R;
 
-import cn.tklvyou.smartapartments.crash.CrashManager;
-
 /**
  * Created by Administrator on 2019/2/27.
  */
@@ -52,9 +50,6 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         mContext = this;
-
-        //异常处理初始化
-        CrashManager.init(mContext);
 
         // android 7.0系统解决拍照的问题
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();

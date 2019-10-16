@@ -20,8 +20,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/CustomAppTheme">
-
-
         <activity android:name=".ui.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,19 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.account.AccountActivity" >
-
         </activity>
-
-        <activity android:name=".ui.test.DemoRecyclerActivity">
-
-        </activity>
-
-
-        <activity android:name=".ui.test.DemoHttpRecyclerActivity">
-
-        </activity>
-
-        <activity android:name=".crash.CrashErrorActivity" />
 
     </application>
 
